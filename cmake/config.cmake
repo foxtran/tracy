@@ -23,7 +23,7 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    add_compile_options(-fexperimental-library)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fexperimental-library>)
 endif()
 
 if(WIN32)
