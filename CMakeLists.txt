@@ -14,6 +14,12 @@ else()
 endif()
 
 option(TRACY_STATIC "Whether to build Tracy as a static library" ${DEFAULT_STATIC})
+option(TRACY_Fortran "Build Fortran bindings" OFF)
+
+if(TRACY_Fortran)
+  enable_language(Fortran)
+  set(CMAKE_Fortran_VERSION 2003)
+endif()
 
 find_package(Threads REQUIRED)
 
@@ -36,6 +42,15 @@ target_link_libraries(
         Threads::Threads
         ${CMAKE_DL_LIBS}
 )
+
+if(TRACY_Fortran)
+    add_library(TracyClientF90 ${TRACY_VISIBILITY} "${TRACY_PUBLIC_DIR}/TracyClient.F90")
+    target_link_libraries(
+        TracyClientF90
+        PUBLIC
+            TracyClient
+    )
+endif()
 
 # Public dependency on some libraries required when using Mingw
 if(WIN32 AND ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU|Clang")
@@ -62,6 +77,9 @@ if(TRACY_DEBUGINFOD)
 endif()
 
 add_library(Tracy::TracyClient ALIAS TracyClient)
+if(TRACY_Fortran)
+    add_library(Tracy::TracyClient_Fortran ALIAS TracyClientF90)
+endif()
 
 macro(set_option option help value)
     option(${option} ${help} ${value})
@@ -176,10 +194,23 @@ install(TARGETS TracyClient
         LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT lib)
+if(TRACY_Fortran)
+    install(TARGETS TracyClientF90
+            EXPORT TracyConfig
+            RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT lib)
+endif()
 # Export targets to build tree root
 export(TARGETS TracyClient
        NAMESPACE Tracy::
        FILE ${CMAKE_BINARY_DIR}/TracyTargets.cmake)
+if(TRACY_Fortran)
+    export(TARGETS TracyClient TracyClientF90
+           NAMESPACE Tracy::
+           FILE ${CMAKE_BINARY_DIR}/TracyTargets.cmake)
+endif()
 install(FILES ${tracy_includes}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tracy)
 install(FILES ${client_includes}
