@@ -45,7 +45,7 @@ target_link_libraries(
 
 if(TRACY_Fortran)
     add_library(TracyClientF90 ${TRACY_VISIBILITY} "${TRACY_PUBLIC_DIR}/TracyClient.F90")
-    target_include_directories(TracyClient PUBLIC
+    target_include_directories(TracyClientF90 PUBLIC
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
         $<INSTALL_INTERFACE:include>)
     target_link_libraries(
